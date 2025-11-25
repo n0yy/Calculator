@@ -1,0 +1,134 @@
+import com.houarizegai.calculator.util.UnitConverter;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class UnitConverterUI extends JPanel {
+    private JComboBox<String> conversionTypeCombo;
+    private JComboBox<String> fromUnitCombo;
+    private JComboBox<String> toUnitCombo;
+    private JTextField inputField;
+    private JTextField outputField;
+    private JButton convertButton;
+    private JButton clearButton;
+
+    private static final String[] CONVERSION_TYPES = {
+            "Length (Panjang)",
+            "Weight (Berat)",
+            "Temperature (Suhu)",
+            "Volume (Volume)",
+            "Currency (Mata Uang)",
+            "Time (Waktu)",
+            "Speed (Kecepatan)",
+            "Area (Luas)"
+    };
+
+    private static final String[][] UNIT_OPTIONS = {
+            {"Meter", "Kilometer", "Centimeter", "Millimeter", "Mile", "Yard", "Foot", "Inch"},
+            {"Kilogram", "Gram", "Milligram", "Pound", "Ounce", "Ton"},
+            {"Celsius", "Fahrenheit", "Kelvin"},
+            {"Liter", "Milliliter", "Gallon", "Pint", "Cup", "Tablespoon", "Teaspoon"},
+            {"USD", "EUR", "GBP", "JPY", "IDR", "AUD", "CAD", "CHF"},
+            {"Second", "Minute", "Hour", "Day", "Week", "Month", "Year"},
+            {"Meter/Second", "Kilometer/Hour", "Mile/Hour", "Knot"},
+            {"Square Meter", "Square Kilometer", "Square Centimeter", "Square Mile", "Square Yard", "Square Foot", "Hectare", "Acre"}
+    };
+
+    public UnitConverterUI() {
+        setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JPanel mainPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+
+        mainPanel.add(new JLabel("Conversion Type:"));
+        conversionTypeCombo = new JComboBox<>(CONVERSION_TYPES);
+        conversionTypeCombo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateUnitOptions();
+            }
+        });
+        mainPanel.add(conversionTypeCombo);
+
+        mainPanel.add(new JLabel("From Unit:"));
+        fromUnitCombo = new JComboBox<>();
+        mainPanel.add(fromUnitCombo);
+
+        mainPanel.add(new JLabel("To Unit:"));
+        toUnitCombo = new JComboBox<>();
+        mainPanel.add(toUnitCombo);
+
+        mainPanel.add(new JLabel("Input Value:"));
+        inputField = new JTextField();
+        mainPanel.add(inputField);
+
+        mainPanel.add(new JLabel("Output Value:"));
+        outputField = new JTextField();
+        outputField.setEditable(false);
+        mainPanel.add(outputField);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        convertButton = new JButton("Convert");
+        convertButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                performConversion();
+            }
+        });
+        buttonPanel.add(convertButton);
+
+        clearButton = new JButton("Clear");
+        clearButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clearFields();
+            }
+        });
+        buttonPanel.add(clearButton);
+
+        mainPanel.add(buttonPanel);
+
+        add(mainPanel, BorderLayout.CENTER);
+
+        updateUnitOptions();
+    }
+
+    private void updateUnitOptions() {
+        int selectedIndex = conversionTypeCombo.getSelectedIndex();
+        fromUnitCombo.removeAllItems();
+        toUnitCombo.removeAllItems();
+
+        for (String unit : UNIT_OPTIONS[selectedIndex]) {
+            fromUnitCombo.addItem(unit);
+            toUnitCombo.addItem(unit);
+        }
+    }
+
+    private void performConversion() {
+        try {
+            String inputValue = inputField.getText().trim();
+            if (inputValue.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a value to convert", "Input Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            double value = Double.parseDouble(inputValue);
+            String conversionType = CONVERSION_TYPES[conversionTypeCombo.getSelectedIndex()].split(" ")[0].toLowerCase();
+            String fromUnit = (String) fromUnitCombo.getSelectedItem();
+            String toUnit = (String) toUnitCombo.getSelectedItem();
+
+            double result = UnitConverter.convert(conversionType, value, fromUnit, toUnit);
+            outputField.setText(String.format("%.6f", result));
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid number", "Input Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Conversion error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void clearFields() {
+        inputField.setText("");
+        outputField.setText("");
+    }
+}
